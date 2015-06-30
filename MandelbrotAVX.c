@@ -63,15 +63,21 @@ int main()
 		double l1[4] = {4.0, 4.0, 4.0, 4.0};
 		__m256d ymm4 = _mm256_broadcast_sd(l1); //ok
 
+		__asm{
+			lea esi, [Cy]
+			//push esi
+		}
 		for(iY=0;iY<iYmax/4;iY+=4)
 		{
 			 __m256d ymm0 = _mm256_mul_pd(ymm3, ymm2); //Cy = iY*PixelHeight
 			 ymm0 = _mm256_add_pd(ymm0, ymm1);         //Cy = iY*PixelHeight + CyMin
-			 //Até aqui ok, os 4 primeiros valores de Cy estão em ymm0
 			 __asm{
-					vmovupd [Cy], ymm0
+					//pop esi
+					vmovupd [esi], ymm0 //Até aqui ok, os 4 primeiros valores de Cy estão em ymm0
 					//preciso incrementar o offset de Cy
+					add esi, 32
 				  }
+			 
 			 ymm3 = _mm256_add_pd(ymm3, ymm4);
 		}
 
@@ -83,7 +89,7 @@ int main()
              if (fabs(Cy[iY])< PixelHeight[0]/2) Cy[iY]=0.0; /* Main antenna */
              for(iX=0;iX<iXmax;iX++)
              {         
-                        Cx[0]=CxMin + iX*PixelWidth[0];
+                        //Cx[iX]=CxMin + iX*PixelWidth[0];
                         /* initial value of orbit = critical point Z= 0 */
                         Zx=0.0;
                         Zy=0.0;
@@ -92,8 +98,8 @@ int main()
                         /* */
                         for (Iteration=0;Iteration<IterationMax && ((Zx2+Zy2)<ER2);Iteration++)
                         {
-                            Zy=2*Zx*Zy + Cy[0];
-                            Zx=Zx2-Zy2 +Cx[0];
+                            Zy=2*Zx*Zy + Cy[Iteration];
+                            Zx=Zx2-Zy2 + Cx[Iteration];
                             Zx2=Zx*Zx;
                             Zy2=Zy*Zy;
                         };
