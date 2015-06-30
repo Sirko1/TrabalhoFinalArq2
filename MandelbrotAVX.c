@@ -22,7 +22,7 @@ int main()
         const int iXmax = 16384; 
         const int iYmax = 16384;
         /* world ( double) coordinate = parameter plane*/
-        double Cx[4],Cy[4];
+        double Cx[16384],Cy[16384];
         const double CxMin=-2.5;
         const double CxMax=1.5;
 		const double CyMin[4]={-2.0, -2.0, -2.0, -2.0};
@@ -51,22 +51,26 @@ int main()
         fprintf(fp,"P6\n %d\n %d\n %d\n",iXmax,iYmax,MaxColorComponentValue);
         /* compute and write image data bytes to the file*/
 		
-		__m256d ymm0 = _mm256_broadcast_sd(Cy);   //all Cy
-		__m256d ymm1 = _mm256_broadcast_sd(CyMin);//all CyMin
-		__m256d ymm2 = _mm256_broadcast_sd(PixelHeight);//all PixelHeight
+		__m256d ymm0 = _mm256_broadcast_sd(Cy);   //all Cy ok
+		__m256d ymm1 = _mm256_broadcast_sd(CyMin);//all CyMin ok
+		__m256d ymm2 = _mm256_broadcast_sd(PixelHeight);//all PixelHeight ok
 		
-		double incr[4] = {0.0, 1.0, 2.0, 3.0};
-		__m256d ymm3 = _mm256_load_pd(incr);
+		//double incr[4] = {0.0, 1.0, 2.0, 3.0};
+		//__m256d ymm3 = _mm256_load_pd(incr);
+
+		__m256d ymm3 = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
 		
 		double l1[4] = {4.0, 4.0, 4.0, 4.0};
-		__m256d ymm4 = _mm256_load_pd(l1);
+		__m256d ymm4 = _mm256_broadcast_sd(l1); //ok
 
 		for(iY=0;iY<iYmax/4;iY+=4)
 		{
 			 __m256d ymm0 = _mm256_mul_pd(ymm3, ymm2); //Cy = iY*PixelHeight
 			 ymm0 = _mm256_add_pd(ymm0, ymm1);         //Cy = iY*PixelHeight + CyMin
+			 //Até aqui ok, os 4 primeiros valores de Cy estão em ymm0
 			 __asm{
 					vmovupd [Cy], ymm0
+					//preciso incrementar o offset de Cy
 				  }
 			 ymm3 = _mm256_add_pd(ymm3, ymm4);
 		}
