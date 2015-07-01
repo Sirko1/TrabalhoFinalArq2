@@ -23,12 +23,12 @@ int main()
         const int iYmax = 16384;
         /* world ( double) coordinate = parameter plane*/
         double Cx[16384],Cy[16384];
-        const double CxMin=-2.5;
+		const double CxMin[4]={-2.5, -2.5, -2.5, -2.5};
         const double CxMax=1.5;
 		const double CyMin[4]={-2.0, -2.0, -2.0, -2.0};
         const double CyMax=2.0;
         /* */
-		double PixelWidth[4] = {(CxMax-CxMin)/iXmax, (CxMax-CxMin)/iXmax, (CxMax-CxMin)/iXmax, (CxMax-CxMin)/iXmax};
+		double PixelWidth[4] = {(CxMax-CxMin[0])/iXmax, (CxMax-CxMin[0])/iXmax, (CxMax-CxMin[0])/iXmax, (CxMax-CxMin[0])/iXmax};
 		double PixelHeight[4] = {(CyMax-CyMin[0])/iYmax, (CyMax-CyMin[0])/iYmax, (CyMax-CyMin[0])/iYmax, (CyMax-CyMin[0])/iYmax};
         /* color component ( R or G or B) is coded from 0 to 255 */
         /* it is 24 bit color RGB file */
@@ -54,9 +54,6 @@ int main()
 		__m256d ymm0 = _mm256_broadcast_sd(Cy);   //all Cy ok
 		__m256d ymm1 = _mm256_broadcast_sd(CyMin);//all CyMin ok
 		__m256d ymm2 = _mm256_broadcast_sd(PixelHeight);//all PixelHeight ok
-		
-		//double incr[4] = {0.0, 1.0, 2.0, 3.0};
-		//__m256d ymm3 = _mm256_load_pd(incr);
 
 		__m256d ymm3 = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
 		
@@ -81,7 +78,27 @@ int main()
 			 ymm3 = _mm256_add_pd(ymm3, ymm4);
 		}
 
+		__m256d ymm7 = _mm256_broadcast_sd(Cx); //all Cx ok
+		__m256d ymm5 = _mm256_broadcast_sd(CxMin);//all CxMin ok
+		__m256d ymm6 = _mm256_broadcast_sd(PixelWidth);//all PixelWidth ok
 
+		__asm{
+			lea esi, [Cx] //Por algum motivo obscuro, isso não compila
+			//push esi
+		}
+		for(iX=0;iX<iXmax/4;iX+=4)
+		{
+			 __m256d ymm7 = _mm256_mul_pd(ymm3, ymm6); //Cx = iX*PixelWidth
+			 ymm7 = _mm256_add_pd(ymm0, ymm5);         //Cx = iX*PixelWidth + CxMin
+			 __asm{
+					//pop esi
+					vmovupd [esi], ymm7 //Até aqui ok, os 4 primeiros valores de Cx estão em ymm0
+					//preciso incrementar o offset de Cx
+					add esi, 32
+				  }
+			 
+			 ymm3 = _mm256_add_pd(ymm3, ymm4);
+		}
 
         for(iY=0;iY<iYmax;iY++)
         {
