@@ -14,6 +14,9 @@ to see the file use external application ( graphic viewer)
 #include <stdio.h>
 #include <math.h>
 #include <immintrin.h>
+#include <iostream>
+
+using namespace std;
 
 int main()
 {
@@ -64,7 +67,7 @@ int main()
 			lea esi, [Cy]
 			//push esi
 		}
-		for(iY=0;iY<iYmax/4;iY+=4)
+		for(iY=0;iY<iYmax/4;iY++)
 		{
 			 __m256d ymm0 = _mm256_mul_pd(ymm3, ymm2); //Cy = iY*PixelHeight
 			 ymm0 = _mm256_add_pd(ymm0, ymm1);         //Cy = iY*PixelHeight + CyMin
@@ -86,7 +89,7 @@ int main()
 			lea esi, [Cxx]
 			//push esi
 		}
-		for(iX=0;iX<iXmax/4;iX+=4)
+		for(iX=0;iX<iXmax/4;iX++)
 		{
 			 ymm0 = _mm256_mul_pd(ymm3, ymm6); //Cx = iX*PixelWidth
 			 ymm0 = _mm256_add_pd(ymm0, ymm5); //Cx = iX*PixelWidth + CxMin
@@ -103,6 +106,7 @@ int main()
         for(iY=0;iY<iYmax;iY++)
         {
              //Cy=CyMin + iY*PixelHeight;
+			//cout << Cy[iY] << endl;
              if (fabs(Cy[iY])< PixelHeight[0]/2) Cy[iY]=0.0; /* Main antenna */
              for(iX=0;iX<iXmax;iX++)
              {         
