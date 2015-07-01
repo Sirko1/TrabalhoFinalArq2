@@ -22,7 +22,7 @@ int main()
         const int iXmax = 16384; 
         const int iYmax = 16384;
         /* world ( double) coordinate = parameter plane*/
-        double Cx[16384],Cy[16384];
+        double Cxx[16384],Cy[16384];
 		const double CxMin[4]={-2.5, -2.5, -2.5, -2.5};
         const double CxMax=1.5;
 		const double CyMin[4]={-2.0, -2.0, -2.0, -2.0};
@@ -78,21 +78,21 @@ int main()
 			 ymm3 = _mm256_add_pd(ymm3, ymm4);
 		}
 
-		__m256d ymm7 = _mm256_broadcast_sd(Cx); //all Cx ok
+		//ymm0 = _mm256_broadcast_sd(Cxx); //all Cx ok
 		__m256d ymm5 = _mm256_broadcast_sd(CxMin);//all CxMin ok
 		__m256d ymm6 = _mm256_broadcast_sd(PixelWidth);//all PixelWidth ok
-
+		ymm3 = _mm256_set_pd(3.0, 2.0, 1.0, 0.0);
 		__asm{
-			lea esi, [Cx] //Por algum motivo obscuro, isso não compila
+			lea esi, [Cxx]
 			//push esi
 		}
 		for(iX=0;iX<iXmax/4;iX+=4)
 		{
-			 __m256d ymm7 = _mm256_mul_pd(ymm3, ymm6); //Cx = iX*PixelWidth
-			 ymm7 = _mm256_add_pd(ymm0, ymm5);         //Cx = iX*PixelWidth + CxMin
+			 ymm0 = _mm256_mul_pd(ymm3, ymm6); //Cx = iX*PixelWidth
+			 ymm0 = _mm256_add_pd(ymm0, ymm5); //Cx = iX*PixelWidth + CxMin
 			 __asm{
 					//pop esi
-					vmovupd [esi], ymm7 //Até aqui ok, os 4 primeiros valores de Cx estão em ymm0
+					vmovupd [esi], ymm0 //Até aqui ok, os 4 primeiros valores de Cx estão em ymm7
 					//preciso incrementar o offset de Cx
 					add esi, 32
 				  }
@@ -115,8 +115,8 @@ int main()
                         /* */
                         for (Iteration=0;Iteration<IterationMax && ((Zx2+Zy2)<ER2);Iteration++)
                         {
-                            Zy=2*Zx*Zy + Cy[Iteration];
-                            Zx=Zx2-Zy2 + Cx[Iteration];
+                            Zy=2*Zx*Zy + Cy[iY];
+                            Zx=Zx2-Zy2 + Cxx[iX];
                             Zx2=Zx*Zx;
                             Zy2=Zy*Zy;
                         };
