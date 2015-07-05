@@ -20,7 +20,7 @@ int main()
         /* it is 24 bit color RGB file */
         const int MaxColorComponentValue=255; 
         FILE * fp;
-        char *filename="mandelbrot.ppm";
+        char *filename="mandelbrotMMX.ppm";
         static unsigned char color[3], colorBuffer[5]; //3bytes + 5bytes de buffer
 
 		static unsigned char colorAux[]={63,0,127,0,255,0,0,0};//auxiliar pra fazer mult de word com byte
