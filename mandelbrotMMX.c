@@ -5,8 +5,8 @@ int main()
 {
         /* screen ( integer) coordinate */
         int iX,iY;
-        const int iXmax = 100; 
-        const int iYmax = 100;
+        const int iXmax = 16384; 
+        const int iYmax = 16384;
         /* world ( double) coordinate = parameter plane*/
         double Cx,Cy;
         const double CxMin=-2.5;
